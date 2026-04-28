@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Nilai Tempat</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Nunito', sans-serif; }
+    
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes confetti {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-120px) rotate(720deg); opacity: 0; }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+    }
+    @keyframes starBurst {
+      0% { transform: scale(0) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
+      100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+    .pop-in { animation: popIn 0.4s ease-out; }
+    .shake { animation: shake 0.5s ease-in-out; }
+    .slide-up { animation: slideUp 0.5s ease-out; }
+    .confetti-particle { animation: confetti 1s ease-out forwards; }
+    .pulse-glow { animation: pulse-glow 2s infinite; }
+
+    .place-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .place-card:hover {
+      transform: translateY(-4px);
+    }
+    .digit-box {
+      transition: all 0.2s ease;
+    }
+    .digit-box.highlight {
+      transform: scale(1.15);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    }
+
+    .option-btn {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .option-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+    .option-btn:active {
+      transform: scale(0.97);
+    }
+
+    .progress-fill {
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toast-msg {
+      animation: slideUp 0.3s ease-out;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);"><!-- Floating BG shapes -->
+   <div style="position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;">
+    <div style="position:absolute;top:10%;left:5%;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,0.08),transparent);border-radius:50%;"></div>
+    <div style="position:absolute;bottom:15%;right:8%;width:300px;height:300px;background:radial-gradient(circle,rgba(244,114,182,0.06),transparent);border-radius:50%;"></div>
+    <div style="position:absolute;top:50%;left:60%;width:250px;height:250px;background:radial-gradient(circle,rgba(34,211,238,0.06),transparent);border-radius:50%;"></div>
+   </div>
+   <div class="relative z-10 max-w-2xl mx-auto px-4 py-6"><!-- Header -->
+    <div class="text-center mb-6">
+     <h1 id="gameTitle" class="text-3xl md:text-4xl font-black text-white mb-1 tracking-tight">🔢 Game Nilai Tempat</h1>
+     <p id="gameSubtitle" class="text-slate-400 text-sm">Tentukan nilai tempat bilangan cacah sampai 1.000.000</p>
+    </div><!-- Score & Progress -->
+    <div class="flex items-center gap-4 mb-5">
+     <div class="flex items-center gap-2 bg-slate-800/70 backdrop-blur rounded-xl px-4 py-2 border border-slate-700/50"><span class="text-yellow-400 text-lg">⭐</span> <span id="scoreDisplay" class="text-white font-bold text-lg">0</span>
+     </div>
+     <div class="flex-1">
+      <div class="flex justify-between text-xs text-slate-400 mb-1"><span>Soal <span id="qNum">1</span>/10</span> <span id="streakDisplay" class="text-emerald-400 font-semibold"></span>
+      </div>
+      <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+       <div id="progressBar" class="progress-fill h-full rounded-full" style="width:0%;background:linear-gradient(90deg,#6366f1,#a855f7);"></div>
+      </div>
+     </div>
+     <div class="flex items-center gap-1 bg-slate-800/70 backdrop-blur rounded-xl px-4 py-2 border border-slate-700/50"><i data-lucide="heart" style="width:18px;height:18px;color:#f43f5e;fill:#f43f5e;"></i> <span id="livesDisplay" class="text-white font-bold text-lg">3</span>
+     </div>
+    </div><!-- Game Area -->
+    <div id="gameArea"><!-- Start Screen -->
+     <div id="startScreen" class="text-center py-10 slide-up">
+      <div class="text-7xl mb-4">
+       🎯
+      </div>
+      <h2 class="text-2xl font-extrabold text-white mb-3">Siap Bermain?</h2>
+      <p class="text-slate-400 mb-2 text-sm max-w-md mx-auto">Tentukan nilai dari angka yang disorot dalam bilangan. Ada 3 mode permainan!</p>
+      <div class="grid gap-3 max-w-sm mx-auto mt-6 mb-6"><button onclick="startGame('easy')" class="option-btn bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"> <span class="text-lg">🌱</span> Mudah <span class="text-emerald-200 text-xs ml-1">(sampai 9.999)</span> </button> <button onclick="startGame('medium')" class="option-btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"> <span class="text-lg">🔥</span> Sedang <span class="text-indigo-200 text-xs ml-1">(sampai 99.999)</span> </button> <button onclick="startGame('hard')" class="option-btn bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2"> <span class="text-lg">💎</span> Sulit <span class="text-rose-200 text-xs ml-1">(sampai 1.000.000)</span> </button>
+      </div>
+     </div><!-- Question Screen -->
+     <div id="questionScreen" class="hidden"><!-- Question Type Label -->
+      <div id="questionTypeLabel" class="text-center mb-3"><span class="inline-block bg-indigo-500/20 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full border border-indigo-500/30"></span>
+      </div><!-- Number Display -->
+      <div id="numberDisplay" class="bg-slate-800/80 backdrop-blur rounded-2xl p-5 mb-5 border border-slate-700/50 text-center"></div><!-- Question Text -->
+      <div id="questionText" class="text-center text-white font-bold text-lg mb-5"></div><!-- Options -->
+      <div id="optionsContainer" class="grid grid-cols-2 gap-3 mb-4"></div><!-- Feedback -->
+      <div id="feedback" class="hidden text-center py-3 rounded-xl font-bold text-lg"></div>
+     </div><!-- Result Screen -->
+     <div id="resultScreen" class="hidden text-center py-8 slide-up">
+      <div id="resultEmoji" class="text-7xl mb-4"></div>
+      <h2 id="resultTitle" class="text-2xl font-extrabold text-white mb-2"></h2>
+      <p id="resultDesc" class="text-slate-400 mb-1"></p>
+      <div id="resultScore" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 my-4"></div>
+      <div id="resultStats" class="flex justify-center gap-6 mb-6 text-sm"></div><button onclick="showStart()" class="option-btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl"> 🔄 Main Lagi </button>
+     </div>
+    </div><!-- Place Value Reference -->
+    <div id="referenceSection" class="mt-6"><button onclick="toggleRef()" class="w-full text-left flex items-center justify-between bg-slate-800/50 backdrop-blur rounded-xl px-4 py-3 border border-slate-700/40 text-slate-300 hover:text-white transition-colors"> <span class="flex items-center gap-2 text-sm font-semibold"><i data-lucide="book-open" style="width:16px;height:16px;"></i> Tabel Nilai Tempat</span> <i id="refChevron" data-lucide="chevron-down" style="width:16px;height:16px;transition:transform 0.3s;"></i> </button>
+     <div id="refTable" class="hidden mt-2 bg-slate-800/60 backdrop-blur rounded-xl p-4 border border-slate-700/40 overflow-x-auto">
+      <table class="w-full text-sm">
+       <thead>
+        <tr class="text-slate-400">
+         <th class="text-left py-1 px-2 font-semibold">Nilai Tempat</th>
+         <th class="text-right py-1 px-2 font-semibold">Nilai</th>
+        </tr>
+       </thead>
+       <tbody class="text-white">
+        <tr class="border-t border-slate-700/40">
+         <td class="py-1.5 px-2">Ratusan Ribu</td>
+         <td class="text-right px-2 font-mono text-indigo-300">100.000</td>
+        </tr>
+        <tr class="border-t border-slate-700/40">
+         <td class="py-1.5 px-2">Puluhan Ribu</td>
+         <td class="text-right px-2 font-mono text-indigo-300">10.000</td>
+        </tr>
+        <tr class="border-t border-slate-700/40">
+         <td class="py-1.5 px-2">Ribuan</td>
+         <td class="text-right px-2 font-mono text-indigo-300">1.000</td>
+        </tr>
+        <tr class="border-t border-slate-700/40">
+         <td class="py-1.5 px-2">Ratusan</td>
+         <td class="text-right px-2 font-mono text-indigo-300">100</td>
+        </tr>
+        <tr class="border-t border-slate-700/40">
+         <td class="py-1.5 px-2">Puluhan</td>
+         <td class="text-right px-2 font-mono text-indigo-300">10</td>
+        </tr>
+        <tr class="border-t border-slate-700/40">
+         <td class="py-1.5 px-2">Satuan</td>
+         <td class="text-right px-2 font-mono text-indigo-300">1</td>
+        </tr>
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+  // ── State ──
+  const PLACES = [
+    { name: 'Satuan', value: 1, idx: 0 },
+    { name: 'Puluhan', value: 10, idx: 1 },
+    { name: 'Ratusan', value: 100, idx: 2 },
+    { name: 'Ribuan', value: 1000, idx: 3 },
+    { name: 'Puluhan Ribu', value: 10000, idx: 4 },
+    { name: 'Ratusan Ribu', value: 100000, idx: 5 },
+  ];
+
+  let difficulty = 'easy';
+  let score = 0, question = 0, totalQ = 10, lives = 3, streak = 0, correct = 0;
+  let currentNumber, highlightIdx, correctAnswer, questionType;
+  let answering = false;
+
+  const defaultConfig = {
+    game_title: 'Game Nilai Tempat',
+    background_color: '#0f172a',
+    surface_color: '#1e293b',
+    text_color: '#f8fafc',
+    primary_color: '#6366f1',
+    accent_color: '#f43f5e',
+    font_family: 'Nunito',
+    font_size: 16
+  };
+
+  function applyConfig(config) {
+    const t = config.game_title || defaultConfig.game_title;
+    const el = document.getElementById('gameTitle');
+    if (el) el.textContent = '🔢 ' + t;
+
+    const bg = config.background_color || defaultConfig.background_color;
+    const sf = config.surface_color || defaultConfig.surface_color;
+    const tx = config.text_color || defaultConfig.text_color;
+    const pr = config.primary_color || defaultConfig.primary_color;
+    const ac = config.accent_color || defaultConfig.accent_color;
+    const ff = config.font_family || defaultConfig.font_family;
+    const fs = config.font_size || defaultConfig.font_size;
+
+    document.body.style.fontFamily = `${ff}, sans-serif`;
+    const app = document.getElementById('app');
+    app.style.background = `linear-gradient(135deg, ${bg} 0%, ${sf} 50%, ${bg} 100%)`;
+
+    document.querySelectorAll('.option-btn').forEach(b => {
+      if (b.dataset.optionIdx !== undefined) {
+        b.style.borderColor = pr;
+      }
+    });
+  }
+
+  // ── Element SDK ──
+  window.elementSdk.init({
+    defaultConfig,
+    onConfigChange: async (config) => applyConfig(config),
+    mapToCapabilities: (config) => ({
+      recolorables: [
+        { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+        { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+        { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+        { get: () => config.primary_color || defaultConfig.primary_color, set: v => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+        { get: () => config.accent_color || defaultConfig.accent_color, set: v => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
+      ],
+      borderables: [],
+      fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+      fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } },
+    }),
+    mapToEditPanelValues: (config) => new Map([
+      ['game_title', config.game_title || defaultConfig.game_title]
+    ])
+  });
+
+  // ── Helpers ──
+  function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  function formatNum(n) { return n.toLocaleString('id-ID'); }
+
+  function getMaxNumber() {
+    if (difficulty === 'easy') return 9999;
+    if (difficulty === 'medium') return 99999;
+    return 999999;
+  }
+  function getMinNumber() {
+    if (difficulty === 'easy') return 100;
+    if (difficulty === 'medium') return 1000;
+    return 10000;
+  }
+  function getMaxPlaceIdx() {
+    if (difficulty === 'easy') return 3;
+    if (difficulty === 'medium') return 4;
+    return 5;
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = rand(0, i);
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ── Game Logic ──
+  function startGame(diff) {
+    difficulty = diff;
+    score = 0; question = 0; lives = 3; streak = 0; correct = 0;
+    updateHUD();
+    nextQuestion();
+  }
+
+  function showStart() {
+    document.getElementById('startScreen').classList.remove('hidden');
+    document.getElementById('questionScreen').classList.add('hidden');
+    document.getElementById('resultScreen').classList.add('hidden');
+    score = 0; question = 0; lives = 3; streak = 0; correct = 0;
+    updateHUD();
+  }
+
+  function updateHUD() {
+    document.getElementById('scoreDisplay').textContent = score;
+    document.getElementById('qNum').textContent = question;
+    document.getElementById('livesDisplay').textContent = lives;
+    document.getElementById('progressBar').style.width = ((question) / totalQ * 100) + '%';
+    document.getElementById('streakDisplay').textContent = streak > 1 ? `🔥 ${streak}x combo` : '';
+  }
+
+  function nextQuestion() {
+    if (question >= totalQ || lives <= 0) return showResult();
+    question++;
+    answering = false;
+
+    // Pick question type randomly
+    const types = ['identify_place', 'identify_value', 'find_digit'];
+    questionType = types[rand(0, types.length - 1)];
+
+    currentNumber = rand(getMinNumber(), getMaxNumber());
+    const digits = String(currentNumber).split('').reverse();
+    
+    // Pick a non-zero digit to highlight (prefer non-zero for better questions)
+    let validIdxs = [];
+    for (let i = 0; i < digits.length && i <= getMaxPlaceIdx(); i++) {
+      if (parseInt(digits[i]) > 0) validIdxs.push(i);
+    }
+    if (validIdxs.length === 0) validIdxs = Array.from({length: Math.min(digits.length, getMaxPlaceIdx()+1)}, (_,i) => i);
+    highlightIdx = validIdxs[rand(0, validIdxs.length - 1)];
+    
+    const place = PLACES[highlightIdx];
+    const digitVal = parseInt(digits[highlightIdx]);
+    const actualValue = digitVal * place.value;
+
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('questionScreen').classList.remove('hidden');
+    document.getElementById('resultScreen').classList.add('hidden');
+    document.getElementById('feedback').classList.add('hidden');
+
+    // Render number with highlighted digit
+    renderNumber(digits, highlightIdx);
+
+    // Generate question and options based on type
+    const qText = document.getElementById('questionText');
+    const typeLabel = document.getElementById('questionTypeLabel').querySelector('span');
+    const optContainer = document.getElementById('optionsContainer');
+    let options = [];
+
+    if (questionType === 'identify_place') {
+      typeLabel.textContent = '📍 Tentukan Nilai Tempat';
+      qText.innerHTML = `Angka <span class="text-indigo-400 font-black">${digitVal}</span> yang disorot menempati nilai tempat...`;
+      correctAnswer = place.name;
+      options = [place.name];
+      const others = PLACES.filter(p => p.name !== place.name && p.idx <= getMaxPlaceIdx());
+      shuffle(others);
+      for (let i = 0; i < Math.min(3, others.length); i++) options.push(others[i].name);
+      shuffle(options);
+    } 
+    else if (questionType === 'identify_value') {
+      typeLabel.textContent = '💰 Tentukan Nilai Angka';
+      qText.innerHTML = `Berapa <strong>nilai</strong> angka <span class="text-indigo-400 font-black">${digitVal}</span> yang disorot?`;
+      correctAnswer = formatNum(actualValue);
+      options = [formatNum(actualValue)];
+      // Generate distractors
+      const distractors = new Set();
+      PLACES.forEach(p => {
+        if (p.idx <= getMaxPlaceIdx()) {
+          const v = digitVal * p.value;
+          if (v !== actualValue) distractors.add(formatNum(v));
+        }
+      });
+      // Also add some tricky ones
+      if (digitVal > 1) distractors.add(formatNum((digitVal - 1) * place.value));
+      if (digitVal < 9) distractors.add(formatNum((digitVal + 1) * place.value));
+      const distArr = shuffle([...distractors]);
+      for (let i = 0; i < Math.min(3, distArr.length); i++) options.push(distArr[i]);
+      while (options.length < 4) options.push(formatNum(rand(1, 9) * PLACES[rand(0, getMaxPlaceIdx())].value));
+      shuffle(options);
+    }
+    else { // find_digit
+      typeLabel.textContent = '🔎 Cari Angka';
+      const targetPlace = place;
+      qText.innerHTML = `Angka berapa yang menempati <span class="text-indigo-400 font-black">${targetPlace.name}</span>?`;
+      correctAnswer = String(digitVal);
+      // Remove highlight for this type - user needs to figure it out
+      renderNumber(digits, -1);
+      options = [String(digitVal)];
+      const usedDigits = new Set([digitVal]);
+      while (options.length < 4) {
+        let d = rand(0, 9);
+        if (!usedDigits.has(d)) {
+          usedDigits.add(d);
+          options.push(String(d));
+        }
+      }
+      shuffle(options);
+    }
+
+    // Render options
+    optContainer.innerHTML = '';
+    const colors = ['from-indigo-600 to-indigo-500', 'from-purple-600 to-purple-500', 'from-cyan-600 to-cyan-500', 'from-pink-600 to-pink-500'];
+    options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = `option-btn bg-gradient-to-br ${colors[i % 4]} text-white font-bold py-4 px-4 rounded-xl text-center shadow-lg border border-white/10`;
+      btn.textContent = opt;
+      btn.dataset.optionIdx = i;
+      btn.onclick = () => checkAnswer(opt, btn);
+      optContainer.appendChild(btn);
+    });
+
+    updateHUD();
+    document.getElementById('questionScreen').classList.add('pop-in');
+  }
+
+  function renderNumber(digits, hlIdx) {
+    const display = document.getElementById('numberDisplay');
+    const reversed = [...digits].reverse();
+    let html = '<div class="flex justify-center items-end gap-1 flex-wrap">';
+    
+    reversed.forEach((d, vi) => {
+      const placeIdx = digits.length - 1 - vi;
+      const isHl = placeIdx === hlIdx;
+      const placeName = PLACES[placeIdx] ? PLACES[placeIdx].name : '';
+      
+      html += `<div class="flex flex-col items-center mx-0.5">
+        <div class="text-[10px] text-slate-500 mb-1 font-semibold whitespace-nowrap">${placeName}</div>
+        <div class="digit-box w-11 h-14 flex items-center justify-center rounded-lg text-2xl font-black ${isHl ? 'bg-indigo-500 text-white highlight shadow-lg shadow-indigo-500/40' : 'bg-slate-700/80 text-slate-200'} border ${isHl ? 'border-indigo-400' : 'border-slate-600/50'}">
+          ${d}
+        </div>
+      </div>`;
+      
+      // Add dot separator for thousands
+      if (placeIdx > 0 && placeIdx % 3 === 0) {
+        html += `<div class="text-slate-500 text-2xl font-bold self-end pb-3">.</div>`;
+      }
+    });
+    
+    html += '</div>';
+    html += `<div class="text-slate-400 text-sm mt-3 font-semibold">${formatNum(currentNumber)}</div>`;
+    display.innerHTML = html;
+  }
+
+  function checkAnswer(selected, btn) {
+    if (answering) return;
+    answering = true;
+
+    const fb = document.getElementById('feedback');
+    fb.classList.remove('hidden');
+    const allBtns = document.querySelectorAll('#optionsContainer .option-btn');
+
+    if (selected === correctAnswer) {
+      streak++;
+      correct++;
+      const bonus = streak >= 3 ? streak * 5 : 10;
+      score += bonus;
+      btn.classList.add('ring-4', 'ring-emerald-400');
+      fb.className = 'toast-msg text-center py-3 rounded-xl font-bold text-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      fb.innerHTML = streak >= 3 ? `🔥 Luar biasa! +${bonus} poin (${streak}x combo!)` : `✅ Benar! +${bonus} poin`;
+      
+      allBtns.forEach(b => { if (b !== btn) b.style.opacity = '0.4'; });
+    } else {
+      streak = 0;
+      lives--;
+      btn.classList.add('ring-4', 'ring-red-400', 'shake');
+      fb.className = 'toast-msg text-center py-3 rounded-xl font-bold text-lg bg-red-500/20 text-red-300 border border-red-500/30';
+      fb.innerHTML = `❌ Jawaban benar: <span class="text-white">${correctAnswer}</span>`;
+      
+      allBtns.forEach(b => {
+        if (b.textContent === correctAnswer) b.classList.add('ring-4', 'ring-emerald-400');
+        else if (b !== btn) b.style.opacity = '0.4';
+      });
+    }
+
+    updateHUD();
+    allBtns.forEach(b => b.onclick = null);
+    setTimeout(nextQuestion, 1500);
+  }
+
+  function showResult() {
+    document.getElementById('questionScreen').classList.add('hidden');
+    const rs = document.getElementById('resultScreen');
+    rs.classList.remove('hidden');
+    
+    const pct = Math.round(correct / totalQ * 100);
+    let emoji, title, desc;
+    
+    if (pct >= 90) { emoji = '🏆'; title = 'Sempurna!'; desc = 'Kamu master nilai tempat!'; }
+    else if (pct >= 70) { emoji = '🌟'; title = 'Hebat!'; desc = 'Pemahaman yang sangat bagus!'; }
+    else if (pct >= 50) { emoji = '👍'; title = 'Bagus!'; desc = 'Terus berlatih ya!'; }
+    else { emoji = '💪'; title = 'Ayo coba lagi!'; desc = 'Latihan membuat sempurna!'; }
+    
+    document.getElementById('resultEmoji').textContent = emoji;
+    document.getElementById('resultTitle').textContent = title;
+    document.getElementById('resultDesc').textContent = desc;
+    document.getElementById('resultScore').textContent = score;
+    document.getElementById('resultStats').innerHTML = `
+      <div class="text-center"><div class="text-2xl font-bold text-emerald-400">${correct}</div><div class="text-slate-500">Benar</div></div>
+      <div class="text-center"><div class="text-2xl font-bold text-red-400">${totalQ - correct}</div><div class="text-slate-500">Salah</div></div>
+      <div class="text-center"><div class="text-2xl font-bold text-indigo-400">${pct}%</div><div class="text-slate-500">Akurasi</div></div>
+    `;
+    document.getElementById('progressBar').style.width = '100%';
+  }
+
+  function toggleRef() {
+    const t = document.getElementById('refTable');
+    const c = document.getElementById('refChevron');
+    t.classList.toggle('hidden');
+    c.style.transform = t.classList.contains('hidden') ? '' : 'rotate(180deg)';
+  }
+
+  lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f32f4cea59ace87',t:'MTc3NzM0NjY5MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
